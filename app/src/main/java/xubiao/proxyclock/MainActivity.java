@@ -1,36 +1,43 @@
 package xubiao.proxyclock;
 
-import android.content.res.Configuration;
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.*;
-import java.net.*;
-import java.io.*;
-import java.util.List;
-import java.util.Map;
+
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
-import java.util.StringTokenizer;
-import android.app.*;
+
 import xubiao.proxyclock.utils.NetUtil;
+
 import android.webkit.WebView;
-import android.content.Context;
+
 import org.json.*;
-import java.util.*;
 
 
 public class MainActivity extends AppCompatActivity {
+    public final static int REQUEST_READ_PHONE_STATE = 1;
     String mUserAgent;
     String token;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE);
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, REQUEST_READ_PHONE_STATE);
+        } else {
+            //TODO
+        }
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -82,11 +89,19 @@ public class MainActivity extends AppCompatActivity {
         public void onClick(View view) {
             TextView textusername = (TextView) findViewById(R.id.text_username);
             String username = textusername.getText().toString();
+            TextView textdevid = (TextView) findViewById(R.id.text_devid);
+            if (username.equals("junkai.niu")){
+                textdevid.setText("7732fb7cf19c263e");
+            }
+            if (username.equals("xiangdong.meng")){
+                textdevid.setText("e68376563d42f609");
+            }
             if (username.equals("biao.xu")
                     || username.equals("wenzhe.hao")
                     || username.equals("junkai.niu")
                     || username.equals("qinggang.gao")
                     || username.equals("zhenmin.wei")
+                    || username.equals("xiangdong.meng")
                     ){
                 switch (view.getId()){
                     case R.id.button_login:
@@ -128,6 +143,7 @@ public class MainActivity extends AppCompatActivity {
                 } catch (JSONException ex) {
                     throw new RuntimeException(ex);
                 }
+
                 String dataStr = jsonText.toString();
                 // header
                 HashMap<String,String> headers = new HashMap<String,String>();
@@ -181,7 +197,12 @@ public class MainActivity extends AppCompatActivity {
     public void clock(){
         if(token==null){
             TextView textmessage = (TextView) findViewById(R.id.text_message);
-            textmessage.setText("please auth first !!!" + "\n");
+
+            TextView textDevId = (TextView) findViewById(R.id.text_devid);
+            String devId = textDevId.getText().toString();
+            String dataStr = "{\"SLOC\":[\"电通创意广场\"],\"ISAPP\":\"1\",\"DEVID\":\"devID\"}";
+            dataStr = dataStr.replace("devID",devId);
+            textmessage.setText("please auth first !!!" + dataStr + "\n");
             return;
         }
         new Thread(new Runnable() {
@@ -189,6 +210,8 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 // url
                 String url = "http://192.168.100.169/ws/saveCheckInfo";
+                TextView textDevId = (TextView) findViewById(R.id.text_devid);
+                String devId = textDevId.getText().toString();
                 // data
 //                JSONStringer jsonText = new JSONStringer();
 //                try {
@@ -204,12 +227,19 @@ public class MainActivity extends AppCompatActivity {
 //                    throw new RuntimeException(ex);
 //                }
 //                String dataStr = jsonText.toString();
-                String dataStr = "{\"SLOC\":[\"电通创意广场\"],\"ISAPP\":\"1\"}";
+//                String devId = TelephonyManager.getDeviceId();
+
+                String dataStr = "{\"SLOC\":[\"电通创意广场\"],\"ISAPP\":\"1\",\"DEVID\":\"devID\"}";
+                dataStr = dataStr.replace("devID",devId);
+//                String dataStr1 = "{\"SLOC\":[\"电通创意广场\"],\"ISAPP\":\"1\",\"DEVID\":\"7732fb7cf19c263e\"}";
+
                 // header
                 HashMap<String,String> headers = new HashMap<String,String>();
                 headers.put("Host", "192.168.100.169");
                 headers.put("Connection", "keep-alive");
-                headers.put("Content-Length", "43");
+                int dataStrLen = 0;
+                dataStrLen = dataStr.getBytes().length;
+                headers.put("Content-Length", String.valueOf(dataStrLen));
                 headers.put("Accept", "application/json, text/plain, */*");
                 headers.put("Origin", "file://");
                 headers.put("User-Agent", mUserAgent);
@@ -244,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
-                            textmessage.append(e.toString() + "\n");
+                            textmessage.append(e.toString() + "|" + state + "\n");
                         }
                         textmessage.append("-------------------------" + "\n");
                         getNotice();

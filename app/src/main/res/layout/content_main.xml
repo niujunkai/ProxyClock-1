@@ -27,6 +27,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="10"
+                android:hint="user name"
                 android:inputType="textPersonName"
                 android:text="" />
 
@@ -35,6 +36,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="10"
+                android:hint="password"
+                android:inputType="textPassword" />
+
+            <EditText
+                android:id="@+id/text_devid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="dev id"
                 android:inputType="textPassword" />
 
             <LinearLayout
@@ -74,8 +84,9 @@
                     android:layout_height="wrap_content"
                     android:ems="10"
                     android:enabled="false"
+                    android:inputType="textMultiLine"
                     android:scrollbars="vertical"
-                    android:inputType="textMultiLine" />
+                    android:singleLine="false" />
             </ScrollView>
 
         </LinearLayout>
